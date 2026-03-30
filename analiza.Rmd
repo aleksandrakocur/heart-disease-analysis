@@ -1,0 +1,96 @@
+---
+title: "Analiza czynników ryzyka chorób serca"
+author: "Aleksandra Kocur"
+date: "2026-03-30"
+output: html_document
+---
+
+# Wprowadzenie
+
+Celem projektu jest analiza czynników ryzyka chorób serca na podstawie danych medycznych. Badanie koncentruje się na wpływie wieku, cholesterolu, ciśnienia oraz innych zmiennych na występowanie choroby.
+
+# Wczytanie danych
+
+```{r}
+data<-read.csv("heart.csv")
+
+colnames(data)<-c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target")
+```
+
+cp-ból klatki, trestbps-ciśnienie, chol-cholesterol, fbs-cukier na czczo, restecg-ekg, thalach-max tętno, exang-ból w klatce podczas wysiłku, oldpeak-obniżenie odcinka ST w ekg, slope-nachylenie odcinka ST w ekg, ca-l. zwężonych naczyń krwionośnych, thal-wynik badania przepływu krwi w sercu, target-zdrowy0/chory1
+
+```{r}
+head(data)
+summary(data)
+data$target<-ifelse(data$target>0, 1, 0)
+data$sex<-ifelse(data$sex>0, "M", "K")
+head(data)
+summary(data)
+```
+
+# Analiza
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+table(data$target)
+prop.table(table(data$target))
+```
+
+Około 51% badanych ma chorobę serca.
+
+## Wiek a choroba
+
+```{r}
+ggplot(data, aes(age, fill=factor(target)))+geom_histogram(position="dodge")
+```
+
+Z wykresu wynika, że młodzi częściej chorują, jednak ze względu na różną liczebność grup konieczna jest analiza proporcji.
+
+```{r}
+data$age_group<-cut(data$age, breaks=c(30,40,50,60,70))
+table(data$age_group, data$target)
+prop.table(table(data$age_group, data$target), margin=1)
+```
+
+Uzyskane wyniki są niezgodne z oczekiwaniami klinicznymi, według których ryzyko choroby serca rośnie z wiekiem. Może to sugerować ograniczenia danych lub losowy charakter próby.
+
+## Cholesterol a choroba
+
+```{r}
+ggplot(data, aes(factor(target), chol, fill=factor(target)))+geom_boxplot()
+```
+
+Z wykresu wynika, że poziom cholesterolu nie różni się znacząco miedzy grupą chorych i zdrowych, jednak u grupy zdrowych jego poziom jest minimalnie wyższy. Może to sugerować, że inne czynniki w tej grupie badanych odgrywają ważniejszą rolę.
+
+```{r}
+data%>% group_by(target) %>% summarise(sredni_wiek=mean(age), sredni_chol=mean(chol))
+t.test(chol~target, data=data)
+```
+
+Mimo, że wizualnie różnice w poziomie cholesterolu nie są duże przeprowadzony test t-Studenta wykazał statystycznie istotną różnicę cholesterolu między grupami. Z analizy wynika, że średni wiek i poziom cholesterolu są wyższe u osób zdrowych.
+
+## Model regresji logistycznej
+
+```{r}
+model<-glm(target~age+chol+trestbps, data=data, family="binomial")
+summary(model)
+```
+
+Zbudowany model regresji logistycznej pokazał, że wiek(p\<0.001) oraz ciśnienie tętnicze(p=0.014) mają istotny wpływ na chorobę w badanym zbiorze. Jednak wraz ze wzrostem wieku i ciśnienia maleje prawdopodobieństwo na wystąpienie choroby w badanym zbiorze danych. Poziom cholesterolu okazał się nie istotny statystycznie(p=0.135) w obecności pozostałych zmiennych, co sugeruje, że nie jest on kluczowym czynnikiem wpływającym na chorobę w tej próbie danych.
+
+# Predykcja
+
+```{r}
+nowy1<-data.frame(age=60, chol=250, trestbps=140)
+predict(model, nowy1, type="response")
+nowy2<-data.frame(age=40, chol=250, trestbps=140)
+predict(model, nowy2, type="response")
+```
+
+Z modelu wynika, że jest 43% szans, że pacjent "nowy1" jest chory, i 65% szans, że pacjent "nowy2" jest chory.
+
+# Wnioski
+
+Analiza wykazała, że zarówno wiek, poziom cholesterolu, i ciśnienie krwi są związane z niższym prawdopodobieństwem chorób serca. Wyniki nie pokrywają się z wiedzą medyczną, według której ww. czynniki zwiększają ryzyko chorób. Pokazuje to specyficzną strukturę danych, że młodzi w szpitalu kardiologicznym są zazwyczaj bardziej chorzy niż starsi na rutynowych badaniach.
