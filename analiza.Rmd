@@ -94,3 +94,5 @@ Z modelu wynika, że jest 43% szans, że pacjent "nowy1" jest chory, i 65% szans
 # Wnioski
 
 Analiza wykazała, że zarówno wiek, poziom cholesterolu, i ciśnienie krwi są związane z niższym prawdopodobieństwem chorób serca. Wyniki nie pokrywają się z wiedzą medyczną, według której ww. czynniki zwiększają ryzyko chorób. Pokazuje to specyficzną strukturę danych, że młodzi w szpitalu kardiologicznym są zazwyczaj bardziej chorzy niż starsi na rutynowych badaniach.
+
+# Źródła
