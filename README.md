@@ -1,5 +1,6 @@
 # heart-disease-analysis
 Projekt analizy czynników ryzyka chorób serca wykonany w języku R.
+[Zobacz raport analizy danych online](https://aleksandrakocur.github.io/heart-disease-analysis/)
 
 ## Zakres analizy
 - eksploracja danych (EDA)
